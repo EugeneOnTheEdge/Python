@@ -5,6 +5,7 @@ import random
 import time
 
 def mix(self):
+	_cash = cash[0]
 	wintimes = 0
 	repetition = int(AutoRollInput.value())
 	difficultyValue = int(DifficultySlider.value())
@@ -65,6 +66,13 @@ def mix(self):
 		if getImg1 == getImg2 == getImg3:
 			print repeat,'<<< WON >>>'	
 			wintimes += 1.0
+			cashToGet = 2*(difficultyValue*10 -100 + 5.0)
+			
+			if cashToGet < 0:	
+				_cash += 2 + 2*((difficultyValue*10 -100 + 5.0)*-1)
+			else:
+				_cash += cashToGet
+			print _cash
 			
 		else:
 			print repeat
@@ -77,7 +85,12 @@ def mix(self):
 		
 	imgUI1.redraw()
 	imgUI2.redraw()
-	imgUI3.redraw()	
+	imgUI3.redraw()
+	
+	#The next 4 lines of codes will have to do with GLOBAL-LOCAL VARIABLE thingy..
+	
+	cash[0] = _cash
+	cashRefresh(_cash)
 		
 def DifficultySlider_Listener(self):
 	DifficultySlider.label("                                                                                      ")
@@ -103,13 +116,25 @@ def diffZero_ErrorHandler():
 	aboveZero_win.show()
 	AutoRollInput.value('1')
 
+def cashRefresh(money):
+	cash[0] = money
+	cashBox.label("$ %.2f" % cash[0])
+	
 def close_diffZero(self):	
 	aboveZero_win.hide()
 
 mode ='NORMAL'
 difficultyValue = 0  
+cash = [20.0]
+
 window = Fl_Window(100,200,1080,720,"Slot Machine")
 window.begin()
+
+mBox = Fl_Box(390,-10,300,100,"MONEY")
+mBox.labeltype(FL_ENGRAVED_LABEL)
+cashBox = Fl_Box(390,20,300,100)
+cashBox.align(FL_ALIGN_CENTER)
+cashRefresh(cash[0])
 
 pic1 = Fl_JPEG_Image('Mr Ark.jpg')
 pic2 = Fl_JPEG_Image('doge.jpg')
@@ -120,9 +145,9 @@ pic6 = Fl_JPEG_Image('trump.jpg')
 
 y = 125
 
-imgUI1 = Fl_Button(165,y,200,200)
-imgUI2 = Fl_Button(420,y,200,200)
-imgUI3 = Fl_Button(675,y,200,200)
+imgUI1 = Fl_Box(165,y,200,200)
+imgUI2 = Fl_Box(420,y,200,200)
+imgUI3 = Fl_Box(675,y,200,200)
 
 AutoRollTextBox = Fl_Box(200,425,300,20,"Auto-Roll:")
 AutoRollInput = Fl_Input(200,450,300,60,None)
@@ -138,8 +163,11 @@ DifficultySlider.value(0)
 PullSlider = Fl_Return_Button(940,50,75,350, "PULL")
 #PullSlider.type(FL_VERT_NICE_SLIDER)
 PullSlider.callback(mix)
+PullSlider.box(FL_PLASTIC_UP_BOX)
 
 DifficultySlider.callback(DifficultySlider_Listener)
+DifficultySlider.box(FL_PLASTIC_UP_BOX)
+DifficultySlider.labeltype(FL_ENGRAVED_LABEL)
 
 pics = [pic1,pic2,pic3,pic4,pic5,pic6]
 
@@ -151,7 +179,7 @@ window.end()
 aboveZero_win = Fl_Window(500,320,400,200,"Error")
 aboveZero_win.begin()
 
-closeBtn = Fl_Return_Button(275,150,100,30,"Alright!")
+closeBtn = Fl_Return_Button(225,100,100,30,"Alright!")
 closeBtn.callback(close_diffZero)
 errorText = Fl_Box(25,0,350,150,"Mate, you gotta enter the Auto-Roll value \nBIGGER THAN 0. I hope you haven't forgotten \nbout real #s..")
 aboveZero_win.callback(diffZero_ErrorHandler)
