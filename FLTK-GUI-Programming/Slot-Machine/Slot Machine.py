@@ -6,8 +6,12 @@ import time
 
 def mix(self):
 	wintimes = 0
-	repetition = int(repInput.value())
+	repetition = int(AutoRollInput.value())
 	difficultyValue = int(DifficultySlider.value())
+	
+	if repetition <= 0:
+		diffZero_ErrorHandler()
+		return
 	
 	if difficultyValue < 0:
 		mode = 'LOSE'
@@ -59,8 +63,9 @@ def mix(self):
 			getImg3 = random.choice(pics)
 	
 		if getImg1 == getImg2 == getImg3:
-			print repeat,'>>> WON <<<'
+			print repeat,'<<< WON >>>'	
 			wintimes += 1.0
+			
 		else:
 			print repeat
 	
@@ -85,14 +90,21 @@ def DifficultySlider_Listener(self):
 	else:
 		mode = 'NORMAL'
 	if difficultyValue != 0:
-		DifficultySlider.label( ( ("Difficulty: %1.2f%% chance to "+mode+"!") % (difficultyValue/(maxBound*1.0) * 100) ) )
+		DifficultySlider.label( ( ("DIFFICULTY HACK: %1.2f%% chance to "+mode+"!") % (difficultyValue/(maxBound*1.0) * 100) ) )
 	else:
-		DifficultySlider.label("Difficulty: NORMAL")
+		DifficultySlider.label("Difficulty Hack: OFF")
         
 def PullSlider_Listener(self):
     if PullSlider.value() == 1.0:
         mix()
         PullSlider.value(0.0)
+
+def diffZero_ErrorHandler():
+	aboveZero_win.show()
+	AutoRollInput.value('1')
+
+def close_diffZero(self):	
+	aboveZero_win.hide()
 
 mode ='NORMAL'
 difficultyValue = 0  
@@ -112,12 +124,13 @@ imgUI1 = Fl_Button(165,y,200,200)
 imgUI2 = Fl_Button(420,y,200,200)
 imgUI3 = Fl_Button(675,y,200,200)
 
-repInput = Fl_Input(300,450,600,60,"Auto-Roll Reps:")
-repInput.value(str(1))
+AutoRollTextBox = Fl_Box(200,425,300,20,"Auto-Roll:")
+AutoRollInput = Fl_Input(200,450,300,60,None)
+AutoRollInput.value(str(1))
 
 maxBound = 10
-minBound = -10
-DifficultySlider = Fl_Slider(200,600,640,60, "DIFFICULTY")
+minBound = -(maxBound)
+DifficultySlider = Fl_Slider(200,600,640,60, "Difficulty Hack: OFF")
 DifficultySlider.bounds(minBound,maxBound)
 DifficultySlider.type(FL_HOR_NICE_SLIDER)
 DifficultySlider.value(0)
@@ -133,7 +146,18 @@ pics = [pic1,pic2,pic3,pic4,pic5,pic6]
 imgUI1.image(random.choice(pics))
 imgUI2.image(random.choice(pics))
 imgUI3.image(random.choice(pics))
-
 window.end()
+
+aboveZero_win = Fl_Window(500,320,400,200,"Error")
+aboveZero_win.begin()
+
+closeBtn = Fl_Return_Button(275,150,100,30,"Alright!")
+closeBtn.callback(close_diffZero)
+errorText = Fl_Box(25,0,350,150,"Mate, you gotta enter the Auto-Roll value \nBIGGER THAN 0. I hope you haven't forgotten \nbout real #s..")
+aboveZero_win.callback(diffZero_ErrorHandler)
+aboveZero_win.end()
+
+print "/!\DO NOT CLOSE THIS (TERMINAL) WINDOW AS IT WILL CLOSE THE MAIN PROGRAM AS WELL. /!\\\n\n"
+
 window.show()
 Fl.run()
