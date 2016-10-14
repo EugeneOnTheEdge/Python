@@ -12,9 +12,8 @@ def mix(self):
 	difficultyValue = int(DifficultySlider.value())
 	cashDV = int(DifficultySlider.value())
 	
-	if betAmount <= 0:
-		return
-	if (_cash - betAmount) < 0:
+	if betAmount <= 0 or (_cash - betAmount) < 0:
+		betZero_ErrorHandler()
 		return
 	if repetition <= 0:
 		diffZero_ErrorHandler()
@@ -126,7 +125,11 @@ def PullSlider_Listener(self):
 def diffZero_ErrorHandler():
 	aboveZero_win.show()
 	AutoRollInput.value('1')
-
+def betZero_ErrorHandler():
+	betZero.show()
+def noMoney_ErrorHandler():
+	noMoney.show()
+	
 def cashRefresh(money):
 	cash[0] = money
 	cashBox.label("$ %.2f" % cash[0])
@@ -135,6 +138,9 @@ def close_diffZero(self):
 	aboveZero_win.hide()
 def close_betZero(self):
 	betZero.hide()
+def close_noMoney(self):
+	noMoney.hide()
+	
 mode ='NORMAL'
 difficultyValue = 0  
 cash = [20.0]
@@ -154,6 +160,7 @@ pic3 = Fl_JPEG_Image('cat.jpg')
 pic4 = Fl_JPEG_Image('harambe.jpg')
 pic5 = Fl_JPEG_Image('ppap.jpg')
 pic6 = Fl_JPEG_Image('trump.jpg')
+pics = [pic1,pic2,pic3,pic4,pic5,pic6]
 
 y = 125
 
@@ -168,6 +175,8 @@ AutoRollInput.value(str(1))
 BetTextBox = Fl_Box(540,425,300,20,"Bet ($):")
 BetInput = Fl_Input(540,450,300,60,None)
 BetInput.value(str(2))
+
+winloseStatus = Fl_Box(350,535,300,40,"TEXT GOES HERE MATE")
 
 maxBound = 10
 minBound = -(maxBound)
@@ -185,8 +194,6 @@ DifficultySlider.callback(DifficultySlider_Listener)
 DifficultySlider.box(FL_PLASTIC_UP_BOX)
 DifficultySlider.labeltype(FL_ENGRAVED_LABEL)
 
-pics = [pic1,pic2,pic3,pic4,pic5,pic6]
-
 imgUI1.image(random.choice(pics))
 imgUI2.image(random.choice(pics))
 imgUI3.image(random.choice(pics))
@@ -201,18 +208,19 @@ aboveZero_win.end()
 
 betZero = Fl_Window(500,320,400,200,"Error")
 betZero.begin()
-errorText = Fl_Box(25,0,350,150,"Yo, how can you play without betting?!\n Check ur bet amount and \nuse ur logic, mate!")
-closeBtn = Fl_Return_Button(250,135,100,30,"I will!")
+errorText = Fl_Box(25,0,350,150,"Yo, are u poor or somethin'?!\n Check ur bet amount and \nuse ur logic, mate!")
+closeBtn_betZero = Fl_Return_Button(250,135,100,30,"I will!")
+closeBtn_betZero.callback(close_betZero)
 betZero.end()
-betZero.show()
 
 noMoney = Fl_Window(500,320,400,200,"GAME OVER")
 noMoney.begin()
 errorText = Fl_Box(25,0,350,150,"Nope. Go home, lazy. \nYou wasted all ur money already. \nYes, go outside and get a job.")
-closeBtn = Fl_Return_Button(100,145,200,30,"Oh shoot I'm poor now")
+closeBtn_noMoney = Fl_Return_Button(100,145,200,30,"Oh shoot I'm poor now")
+closeBtn_noMoney.callback(close_noMoney)
 noMoney.end()
-noMoney.show()
 print "/!\DO NOT CLOSE THIS (TERMINAL) WINDOW AS IT WILL CLOSE THE MAIN PROGRAM AS WELL. /!\\\n\n"
 
 window.show()
 Fl.run()
+
