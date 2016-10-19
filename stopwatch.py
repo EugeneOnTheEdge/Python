@@ -15,13 +15,16 @@ def startTime(self):
 	second = time[1]%60.0
 	minute = int(second/60)
 	
-	if second < 10:
-		if minute < 10:
+	if minute < 10:
+		if second < 10:
 			timeShow.label("0%.2f" % (second))
 		else:
-			timeShow.label("%i:0%.2f" % (minute,second))
+			timeShow.label("%.2f" % (second))
 	else:
-		timeShow.label("%i:%.2f" % (minute,second))
+		if second < 10:
+			timeShow.label("%i:0%.2f" % (minute,second))
+		else:
+			timeShow.label("%i:%.2f" % (minute,second))
 		
 	second += 0.02
 	time[0] = minute
