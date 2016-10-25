@@ -76,8 +76,8 @@ def resetTime(self):
 	time[1] = 0
 	timeShow.label("0%.3f" % time[1])
 	started[0] = False
-	secondAnalog.value(0)
-	secondAnalog.color(self.labelcolor())
+	secondAnalog.value(60)
+	secondAnalog.color2(self.labelcolor())
 
 def lapBrowser_onClick(self):
 	value = lapBrowser.text(lapBrowser.value()).split(': ')[1]
@@ -179,6 +179,7 @@ settings.color(fl_rgb_color(30,30,30))
 
 dialColour = Fl_Color_Chooser(100,100,300,150, "Dial Colour")
 dialColour.labelcolor(FL_WHITE)
+dialColour.rgb(float(dialC[0])/255, float(dialC[1])/255, float(dialC[2])/255)
 
 savePrefBtn = Fl_Button(200,275,100,50, "SAVE")
 savePrefBtn.box(FL_NO_BOX)
