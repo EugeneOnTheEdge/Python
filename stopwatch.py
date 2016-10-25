@@ -25,7 +25,7 @@ def startTime(self):
 				timeShow.label("0%i:0%.3f" % (minute,modSecond))
 			else: 
 				timeShow.label("%i:0%.3f" % (minute,modSecond))
-		else:))))+66
+		else:
 			if minute < 10:
 				timeShow.label("0%i:%.3f" % (minute,modSecond))
 			else: 
@@ -37,6 +37,7 @@ def startTime(self):
 	stopBtn.shortcut(FL_Enter)
 	secondAnalog.value(second%60)
 	secondAnalog.color(FL_BLACK)
+	secondAnalog.color2(secondAnalogC[0])
 	Fl.repeat_timeout(interval,loop)
 
 def stopTime(self):
@@ -84,18 +85,45 @@ def lapBrowser_onClick(self):
 	secondAnalog.color(FL_BLACK)
 	secondAnalog.value(float(value))
 	timeShow.label(value)
+
+def prefBtn_onClick(self):
+	settings.show()
+
+def saveBtn(self):
+	f = open('sw.dat','w')
+	f.write( ('%s %s %s \n30 30 30\n' % (int(dialColour.r()*255),int(dialColour.g()*255),int(dialColour.b()*255))) )
+	f.close()
+	secondAnalogC[0] = fl_rgb_color( int(dialColour.r()*255),int(dialColour.g()*255),int(dialColour.b()*255) )
+	secondAnalog.value(60)
+	secondAnalog.color2(secondAnalogC[0])
+	secondAnalog.redraw()
+	bg_secAnalog.redraw()
+	timeShow.redraw()
 	
+try:
+	f = open('sw.dat','r')
+except IOError:
+	f = open('sw.dat','w')
+	f.write('0 255 0 \n30 30 30 \n')
+	f.close()
+	f = open('sw.dat','r')
+	
+dialC = f.readline().split(' ')
+winC = f.readline().split(' ')
+f.close()
+
 started = [False]
 time = [0,0.00] # min , sec
 accumulatedTimes = []
 watch = [0]
-interval = 0.001
+interval = 0.01
 lap = [1]
 lapList = {}
+secondAnalogC = [fl_rgb_color(int(dialC[0]), int(dialC[1]), int(dialC[2]))]
 
 w = Fl_Double_Window(100,100,1000,700,"STOPWATCH")
 w.begin()
-w.color(fl_rgb_color(30,30,30))
+w.color(fl_rgb_color(int(winC[0]),int(winC[1]),int(winC[2])))
 
 secondAnalog = Fl_Dial(85,70,420,420)
 secondAnalog.color2(FL_GREEN)
@@ -134,11 +162,28 @@ stopBtn.callback(stopTime)
 stopBtn.labelcolor(FL_RED)
 stopBtn.box(FL_NO_BOX)
 
-lapBrowser = Fl_Hold_Browser(575,70, 360, 550)
+prefBtn = Fl_Button(685, 580, 150, 40, "PREFERENCES")
+prefBtn.box(FL_PLASTIC_UP_BOX)
+prefBtn.callback(prefBtn_onClick)
+
+lapBrowser = Fl_Hold_Browser(575,70, 360, 440)
 lapBrowser.color(FL_WHITE)
 lapBrowser.callback(lapBrowser_onClick)
 
 w.end()
 w.show()
 
+settings = Fl_Window(350,250,500,350, "Preferences")
+settings.begin()
+settings.color(fl_rgb_color(30,30,30))
+
+dialColour = Fl_Color_Chooser(100,100,300,150, "Dial Colour")
+dialColour.labelcolor(FL_WHITE)
+
+savePrefBtn = Fl_Button(200,275,100,50, "SAVE")
+savePrefBtn.box(FL_NO_BOX)
+savePrefBtn.labelcolor(FL_GREEN)
+savePrefBtn.callback(saveBtn)
+
+settings.end()
 Fl.run()
