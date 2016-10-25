@@ -35,15 +35,21 @@ def startTime(self):
 	time[1] = second
 	startBtn.shortcut(None)
 	stopBtn.shortcut(FL_Enter)
+	lapBtn.shortcut('l')
 	secondAnalog.value(second%60)
-	secondAnalog.color(FL_BLACK)
-	secondAnalog.color2(secondAnalogC[0])
+	if minute % 2 == 0:
+		secondAnalog.color(FL_BLACK)
+		secondAnalog.color2(secondAnalogC[0])
+	else:
+		secondAnalog.color(secondAnalogC[0])
+		secondAnalog.color2(FL_BLACK)
 	Fl.repeat_timeout(interval,loop)
 
 def stopTime(self):
 	Fl.remove_timeout(loop)
 	stopBtn.shortcut(None)
 	startBtn.shortcut(FL_Enter)
+	lapBtn.shortcut(None)
 	started[0] = False
 	second = time[1]
 	minute = int(second/60)
@@ -66,11 +72,7 @@ def stopTime(self):
 				timeShow.label("%i:%.3f" % (minute,_second))
 	secondAnalog.value(0)
 	secondAnalog.color(self.labelcolor())
-	currentLap = lap[0]
-	lapList[currentLap] = str("%.3f" % second)
-	lapBrowser.add(('Lap '+str(currentLap)+': '+lapList[currentLap]+'s'))
-	lap[0] = currentLap + 1
-
+	
 def resetTime(self):
 	time[0] = 0
 	time[1] = 0
@@ -89,7 +91,7 @@ def lapBrowser_onClick(self):
 def prefBtn_onClick(self):
 	settings.show()
 
-def saveBtn(self):
+def saveBtn_onClick(self):
 	f = open('sw.dat','w')
 	f.write( ('%s %s %s \n30 30 30\n' % (int(dialColour.r()*255),int(dialColour.g()*255),int(dialColour.b()*255))) )
 	f.close()
@@ -99,6 +101,13 @@ def saveBtn(self):
 	secondAnalog.redraw()
 	bg_secAnalog.redraw()
 	timeShow.redraw()
+
+def lapBtn_onClick(self):
+	second = time[1]
+	currentLap = lap[0]
+	lapList[currentLap] = str("%.3f" % second)
+	lapBrowser.add(('Lap '+str(currentLap)+': '+lapList[currentLap]+'s'))
+	lap[0] = currentLap + 1
 	
 try:
 	f = open('sw.dat','r')
@@ -116,7 +125,7 @@ started = [False]
 time = [0,0.00] # min , sec
 accumulatedTimes = []
 watch = [0]
-interval = 0.01
+interval = 0.001
 lap = [1]
 lapList = {}
 secondAnalogC = [fl_rgb_color(int(dialC[0]), int(dialC[1]), int(dialC[2]))]
@@ -162,6 +171,11 @@ stopBtn.callback(stopTime)
 stopBtn.labelcolor(FL_RED)
 stopBtn.box(FL_NO_BOX)
 
+lapBtn = Fl_Button(565, 580, 70, 40, "LAP")
+lapBtn.labelcolor(fl_rgb_color(21,183,255))
+lapBtn.box(FL_NO_BOX)
+lapBtn.callback(lapBtn_onClick)
+
 prefBtn = Fl_Button(685, 580, 150, 40, "PREFERENCES")
 prefBtn.box(FL_PLASTIC_UP_BOX)
 prefBtn.callback(prefBtn_onClick)
@@ -184,7 +198,7 @@ dialColour.rgb(float(dialC[0])/255, float(dialC[1])/255, float(dialC[2])/255)
 savePrefBtn = Fl_Button(200,275,100,50, "SAVE")
 savePrefBtn.box(FL_NO_BOX)
 savePrefBtn.labelcolor(FL_GREEN)
-savePrefBtn.callback(saveBtn)
+savePrefBtn.callback(saveBtn_onClick)
 
 settings.end()
 Fl.run()
