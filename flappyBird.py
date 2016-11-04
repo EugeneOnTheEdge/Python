@@ -4,28 +4,38 @@ from fltk import *
 
 def gravity():
 	global velocity
-	global bird
 	global getY
 	global window
+	global gameStarted
 	
 	velocity = velocity - (acceleration*refreshRate)
 	displacement = velocity * refreshRate
-	getY += int(displacement)
-	window.begin()
-	bird = Fl_Box(370,getY,60,50)
-	bird.image(_bird)
-	bird.redraw()
-	window.end()
-	Fl.repeat_timeout(refreshRate,gravity)
+	getY -= int(displacement)
+	if getY + int(displacement) >= windowH:
+		Fl.remove_timeout(gravity)
+		gameStarted = False
+	else:
+		window.begin()
+		clear = Fl_Button(0,0,800,600)
+		clear.color(fl_rgb_color(192,192,192))
+		bird = Fl_Box(370,getY,60,50)
+		bird.image(_bird)
+		bird.redraw()
+		window.redraw()
+		window.end()
+		Fl.repeat_timeout(refreshRate,gravity)
 	
 def fly(self):
 	global gameStarted
+	global getY
 	global velocity
 	if not gameStarted:
 		gameStarted = True
+		getY = 275
 		Fl.add_timeout(refreshRate,gravity)
+		velocity = 300	
 	else:
-		velocity = 20
+		velocity = 300
 		 
 #Window setup
 getWidth = Fl.w()
@@ -36,9 +46,9 @@ windowH = 600
 #Game setup
 _bird = Fl_PNG_Image('flappybird.png')
 _bird = _bird.copy(60,50)
-acceleration = 9.8 # m/(s^2)
-velocity = 0 # m/s
-FPS = 30
+acceleration = 800 # pixel/(s^2)
+velocity = 0 # pixel/s
+FPS = 25
 refreshRate = 1.0/FPS
 gameStarted = False
 
