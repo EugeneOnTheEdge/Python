@@ -4,20 +4,32 @@ from fltk import *
 import random
 
 def btn_onClick(self):
+	global previousClick, nextPreviousClick, clicked
+	if nextPreviousClick:
+		refresh()
+		nextPreviousClick = False
 	self.labeltype(FL_NORMAL_LABEL)
-	global previousClick
-	global clicked
-	if previousClick:
+	print self.label(), clicked
+	
+	if not previousClick:
+		previousClick = True
+		clicked.append(self.label())
+	else:
+		previousClick = False
+		nextPreviousClick = True
 		if self.label() in clicked:
 			unlocked.append(self.label())
-		else:
-			clicked = []
-		previousClick = False
-		print unlocked
-	else:
-		clicked.append(self.label())
-		previousClick = True
+		clicked = []
 	
+def refresh():
+	global unlocked, buttons
+	for btn in buttons:
+		if btn.label() in unlocked:
+			btn.labeltype(FL_NORMAL_LABEL)
+		else:
+			btn.labeltype(FL_NO_LABEL)
+		btn.redraw()
+			
 #Window setup
 getWidth = Fl.w()
 getHeight = Fl.h()
@@ -25,11 +37,12 @@ windowW = 800
 windowH = 600
 
 unlocked = []
-numbers = range(1,9)
+numbers = (range(1,9))*2
 buttons = []
 btnLabel = []
 clicked = []
 previousClick = False
+nextPreviousClick = False
 
 window = Fl_Window( ((getWidth-windowW)/2), ((getHeight-windowH)/2), windowW, windowH, "Memoraiz Dis!")
 window.begin()
@@ -39,17 +52,14 @@ for row in range(4):
 		btn = Fl_Button(column*100+200, row*100+100, 100,100)
 	
 		btn.labeltype(FL_NO_LABEL)
+		label = random.choice(numbers)
+		numbers.remove(label)
+		btn.label(str(label))
+		btn.labeltype(FL_NO_LABEL)
+		btn.labelsize(25)
 		btn.callback(btn_onClick)
 		buttons.append(btn)
 
-for num in numbers:
-	for k in range(2):
-		getRandBtn = random.choice(buttons)
-		while getRandBtn in btnLabel:
-			getRandBtn = random.choice(buttons)
-		if getRandBtn not in btnLabel:
-			btnLabel.append(getRandBtn)
-			getRandBtn.label(str(num))
 window.end()
 
 window.show()
