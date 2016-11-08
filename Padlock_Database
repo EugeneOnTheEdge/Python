@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+from fltk import *
+
+#Window setup
+getWidth = Fl.w()
+getHeight = Fl.h()
+windowW = 800
+windowH = 600
+
+window = Fl_Window( ((getWidth-windowW)/2), ((getHeight-windowH)/2), windowW, windowH, 'Padlock Database')
+window.begin()
+
+firstNum = Fl_Box(50,50,200,300,'--')
+firstNum.labelsize(170)
+
+secondNum = Fl_Box(300,50,200,300,'--')
+secondNum.labelsize(170)
+
+secondNum = Fl_Box(550,50,200,300,'--')
+secondNum.labelsize(170)
+window.end()
+
+window.show()
+Fl.run()
