@@ -1,25 +1,79 @@
 #!/usr/bin/python
 
 from fltk import *
+import cPickle as IO
 
+def search(self):
+	key = keyInput.value().upper()
+	serial = serialInput.value().upper()
+	
+	try:
+		first = database[key][serial][0]
+		second = database[key][serial][1]
+		third = database[key][serial][2]
+		statusBar.label(('Found: %s %s' % (key,serial)))
+	except:
+		first = '--'
+		second = '--'
+		third = '--'
+		statusBar.label(('%s %s not found.' % (key,serial)))
+
+	statusBar.redraw()
+	firstNum.label(first)
+	secondNum.label(second)
+	thirdNum.label(third)
+
+def saveOnExit(self):
+	f = open('padlock_db.dat','w')
+	IO.dump(database,f)
+	
 #Window setup
 getWidth = Fl.w()
 getHeight = Fl.h()
 windowW = 800
 windowH = 600
 
+try:
+	f = open('padlock_db.dat')
+	database = IO.load(f)
+except:
+	f = open('padlock_db.dat','w')
+	database = {}
+	print '>>> NEW DATABASE HAS BEEN CREATED\n'
+
+f.close()
 window = Fl_Window( ((getWidth-windowW)/2), ((getHeight-windowH)/2), windowW, windowH, 'Padlock Database')
 window.begin()
 
+statusBar = Fl_Box(140,45,500,35,'Status Bar')
+statusBar.labelsize(25)
 firstNum = Fl_Box(50,50,200,300,'--')
 firstNum.labelsize(170)
 
 secondNum = Fl_Box(300,50,200,300,'--')
 secondNum.labelsize(170)
 
-secondNum = Fl_Box(550,50,200,300,'--')
-secondNum.labelsize(170)
+thirdNum = Fl_Box(550,50,200,300,'--')
+thirdNum.labelsize(170)
+
+keyInput = Fl_Input(250,450,50,35,"KEY: ")
+serialInput = Fl_Input(400,450,200,35,"SERIAL: ")
+
+searchBtn = Fl_Button(210,500,395,50,'Search')
+searchBtn.box(FL_ROUND_UP_BOX)
+searchBtn.callback(search)
+searchBtn.shortcut(FL_Enter) #FL_Enter is ENTER key; FL_ENTER is SPACE key
+
+window.callback(saveOnExit)
 window.end()
+
+overwriteWindow = Fl_Window(250,200,300,150,"Overwrite?")
+overwriteWindow.begin()
+text = Fl_Box(20,30,265,40,"Overwrite this padlock's combo?")
+yes = Fl_Button(0,100,150,50,"Yeah")
+no = Fl_Button(150,100,150,50,"Oh shoot, don't.")
+overwriteWindow.end()
+overwriteWindow.show()
 
 window.show()
 Fl.run()
