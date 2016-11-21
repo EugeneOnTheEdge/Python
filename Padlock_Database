@@ -17,15 +17,62 @@ def search(self):
 		second = '--'
 		third = '--'
 		statusBar.label(('%s %s not found.' % (key,serial)))
-
+	
 	statusBar.redraw()
 	firstNum.label(first)
 	secondNum.label(second)
 	thirdNum.label(third)
+	
+	print database
+	
+def add(self):
+	key = str(keyInput.value()).upper()
+	serial = str(serialInput.value()).upper()
+	first = str(firstInput.value()).upper()
+	second = str(secondInput.value()).upper()
+	third = str(thirdInput.value()).upper()
+	
+	try:
+		database[key]
+	except KeyError:
+		database[key] = {}
+	
+	try:	
+		if len(database[key][serial]) == 3:
+			overwriteWindow.show()	
+	except:
+		database[key][serial] = [first,second,third]
+		statusBar.label(('%s %s added.' % (key,serial)))
+		
+def delete(self):
+	key = str(keyInput.value()).upper()
+	serial = str(serialInput.value()).upper()
+	
+	try:
+		del database[key][serial]
+		statusBar.label(('%s %s deleted.' % (key,serial)))
+		if len(database[key]) == 0:
+			del database[key]
+			
+	except:
+		statusBar.label(('%s %s not found.' % (key,serial)))
 
+def overwrite(self):
+	key = str(keyInput.value()).upper()
+	serial = str(serialInput.value()).upper()
+	first = str(firstInput.value())
+	second = str(secondInput.value())
+	third = str(thirdInput.value())
+	
+	database[key] = {}
+	database[key][serial] = [first,second,third]
+	overwriteWindow.hide()
+	statusBar.label(('%s %s overwritten.' % (key,serial)))
+	
 def saveOnExit(self):
 	f = open('padlock_db.dat','w')
 	IO.dump(database,f)
+	self.hide()
 	
 #Window setup
 getWidth = Fl.w()
@@ -48,16 +95,31 @@ window.begin()
 statusBar = Fl_Box(140,45,500,35,'Status Bar')
 statusBar.labelsize(25)
 firstNum = Fl_Box(50,50,200,300,'--')
-firstNum.labelsize(170)
+firstNum.labelsize(150)
+firstInput = Fl_Input(125,325,50,35)
 
 secondNum = Fl_Box(300,50,200,300,'--')
-secondNum.labelsize(170)
+secondNum.labelsize(150)
+secondInput = Fl_Input(375,325,50,35)
 
 thirdNum = Fl_Box(550,50,200,300,'--')
-thirdNum.labelsize(170)
+thirdNum.labelsize(150)
+thirdInput = Fl_Input(625,325,50,35)
 
 keyInput = Fl_Input(250,450,50,35,"KEY: ")
 serialInput = Fl_Input(400,450,200,35,"SERIAL: ")
+
+addBtn = Fl_Button(630,450,100,100,"ADD")
+addBtn.box(FL_ROUND_UP_BOX)
+addBtn.callback(add)
+addBtn.color(FL_GREEN)
+addBtn.labelcolor(FL_WHITE)
+
+delBtn = Fl_Button(75,450,100,100,"DELETE")
+delBtn.box(FL_ROUND_UP_BOX)
+delBtn.callback(delete)
+delBtn.color(FL_RED)
+delBtn.labelcolor(FL_WHITE)
 
 searchBtn = Fl_Button(210,500,395,50,'Search')
 searchBtn.box(FL_ROUND_UP_BOX)
@@ -72,8 +134,9 @@ overwriteWindow.begin()
 text = Fl_Box(20,30,265,40,"Overwrite this padlock's combo?")
 yes = Fl_Button(0,100,150,50,"Yeah")
 no = Fl_Button(150,100,150,50,"Oh shoot, don't.")
+yes.callback(overwrite)
+no.callback(lambda x: overwriteWindow.hide())
 overwriteWindow.end()
-overwriteWindow.show()
 
 window.show()
 Fl.run()
