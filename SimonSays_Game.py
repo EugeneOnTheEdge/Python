@@ -5,53 +5,67 @@ import random
 import cPickle as IO
 
 def btn_OnClick(self):
-	global level, click, simonsaysBtns
+	global level, click, simonsaysBtns, userResponse, SimonIsSaying
+	gameover = False
+	print buttons.index(self),
 	
 	if not SimonIsSaying:
-		if simonsaysBtns[int(click)] != buttons.index(self):
-			level = 1
-			click = 0
-			startBtn.activate()
-			simonsaysBtns = []
+		if self != simonsaysBtns[int(click)]:
+			print '\n\n',buttons.index(self), 'is not the same as', ('simonsaysBtns['+str(int(click))+']'), 'or', str(buttons.index(simonsaysBtns[int(click)]))
+			gameover = True
 		else:
+			userResponse.append(self)
 			click += 1
 			
-	if click == len(simonsaysBtns):
-		click = 0
+	if len(userResponse) == len(simonsaysBtns):
 		level += 1
+		click = 0
 		startBtn.activate()
+		userResponse = []
+		SimonIsSaying = False
+		print '\n====================='
+		
+	if gameover:
+		print '======GAME OVER======'
+		level = 1
+		startBtn.activate()
+		click = 0
+		userResponse = []
+		simonsaysBtns = []
+		SimonIsSaying = False
 
 def simonsays():
-	global pressed, originalColour, click, SimonIsSaying, order, level
+	global pressed, originalColour, SimonIsSaying, order, level
 
-	print order
 	if not pressed:
 		originalColour = simonsaysBtns[order].color()
 		simonsaysBtns[order].color(FL_WHITE)
 		pressed = True
-		click += 0.5
 		simonsaysBtns[order].redraw()
 	else:
 		simonsaysBtns[order].color(originalColour)
 		simonsaysBtns[order].redraw()
 		pressed = False
-		click += 0.5
 		order += 1
 	
 	if order < level:
 		Fl.add_timeout(0.5, simonsays)
 	else:
 		SimonIsSaying = False
-		click = 0
 		order = 0
 	
 def start_OnClick(self):
+	global _simon
 	self.deactivate()
 	SimonIsSaying = True
 	btn = random.choice(buttons)
 	simonsaysBtns.append(btn)
+	if level == 1:
+		_simon = [] # _simon is basically the same as simonsaysBtns; except that it is a list of the ORDER of the pressed buttons.
+	_simon.append(buttons.index(btn))
+	print ("\n\n\n====== LEVEL %i ======\nSimon says:" % level), _simon
+	print "\nYou've pressed:"
 	Fl.add_timeout(0.5, simonsays)
-	
 	
 #Window setup
 getWidth = Fl.w()
@@ -64,6 +78,8 @@ level = 1
 click = 0
 order = 0
 simonsaysBtns = []
+_simon = []
+userResponse = []
 SimonIsSaying = False
 pressed = False
 originalColour = None
