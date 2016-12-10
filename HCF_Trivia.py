@@ -5,24 +5,10 @@ import cPickle as IO
 import random
 
 def start_onclick(self):
-	global currentQuestion, possibleAns_label
-
-	currentQuestion += 1
-	answersToQ = actualSets[actualKeys[currentQuestion]].keys()
-	questionNum.label( ('QUESTION #'+str(currentQuestion)) )
-	questionBox.label(actualKeys[currentQuestion])
-	possibleAns_label = []
+	startActivity.hide()
+	nextQuestion()
+	questionsActivity.show()
 	
-	for ans in range(len(answersToQ)):
-		answer = random.choice(answersToQ)
-		getALocation = answersToQ.index(answer)
-		del answersToQ[getALocation]
-		possibleAns_label.append(answer)
-		
-	for ans in possibleAns_label:
-		answers[possibleAns_label.index(ans)].label(ans)
-		answers[possibleAns_label.index(ans)].redraw()
-		
 def answer_onclick(self):
 	global userAnswer, checked, _userAnswer
 	
@@ -40,22 +26,28 @@ def nextQuestion():
 	global currentQuestion, possibleAns_label
 
 	currentQuestion += 1
-	answersToQ = actualSets[actualKeys[currentQuestion]].keys()
-	questionNum.label( ('QUESTION #'+str(currentQuestion)) )
-	questionBox.label(actualKeys[currentQuestion])
-	questionNum.color(fl_rgb_color(0,168,150))
-	possibleAns_label = []
-	
-	for ans in range(len(answersToQ)):
-		answer = random.choice(answersToQ)
-		getALocation = answersToQ.index(answer)
-		del answersToQ[getALocation]
-		possibleAns_label.append(answer)
+	if currentQuestion != questions:
+		answersToQ = actualSets[actualKeys[currentQuestion]].keys()
+		questionNum.label( ('QUESTION #'+str(currentQuestion+1)) )
+		questionBox.label(actualKeys[currentQuestion])
+		questionNum.color(fl_rgb_color(0,168,150))
+		possibleAns_label = []
 		
-	for ans in possibleAns_label:
-		answers[possibleAns_label.index(ans)].label(ans)
-		answers[possibleAns_label.index(ans)].value(0)
-		answers[possibleAns_label.index(ans)].redraw()
+		for ans in range(len(answersToQ)):
+			answer = random.choice(answersToQ)
+			getALocation = answersToQ.index(answer)
+			del answersToQ[getALocation]
+			possibleAns_label.append(answer)
+			
+		for ans in possibleAns_label:
+			answers[possibleAns_label.index(ans)].label(ans)
+			answers[possibleAns_label.index(ans)].value(0)
+			answers[possibleAns_label.index(ans)].redraw()
+	else:
+		questionsActivity.hide()
+		scoreBox.label(str(score))
+		outofBox.label((' /'+str(questions)))
+		scoreActivity.show()
 		
 def check_or_next_onclick(self):
 	global userAnswer, score, checked
@@ -76,31 +68,51 @@ def check_or_next_onclick(self):
 	else:
 		checked = False
 		nextQuestion()
-	print currentQuestion
 	userAnswer = None
 
+def cb(w):
+	if nameInput.value() == '':
+		startBtn.deactivate()
+		print 'deactivated'
+	else:
+		startBtn.activate()
+		print 'activated' 
+
+def cb_repeat():
+	b.do_callback()
+			
 #Variables
-sets = {'In what city was Jesus born??': { 'Seattle': False, 'Vancouver': False, 'Jerusalem':True, 'Beijing':False } ,
+sets = {'In what city was Jesus born??': { 'Seattle': False, 'Vancouver': False, 'Bethlehem':True, 'Beijing':False } ,
 		'What was the purpose of Jesus coming to Earth??': {'To die for us': True, 'To become rich and get rid of the kings at that time': False, 'To become well-known all over the internet': False, 'To kill all bad people on Earth': False },
 		'Fill in the blank: "But I say unto you, Love your _________, ..." -Matthew 5:44': { 'girlfriend/boyfriend/hubby/wifey': False, 'parents': False, 'friends': False, 'enemies': True },
-		'With 5 fish and 2 loaves of bread, how many people did Jesus feed??': { '1000 people': False, '2500 people': False, '5000 people': True, '7500 people': False },
+		'With 5 fish and 2 loaves of bread, how many people did Jesus feed??': { '1257 people': False, '53 people': False, '5000 people': True, '7 people': False },
 		'How did Jesus die??': { 'He was crucified on the cross': True, 'He had a rickshaw accident': False, 'His girlfriend dumped him and he commited suicide later on': False, 'He had an uncurable brain and lung cancer, in addition to kidney failure and heart attack': False },
-		'Fill in the blank: "For God so loved the world, he gave his one and only ______ (Jesus Christ),  \nthat whoever believes in him shall not perish but have eternal life. - John 3:16"': { 'son': True, '$100 bill': False, 'friend': False, 'self': False }
+		'Fill in the blank: "For God so loved the world, he gave his one and only ______ (Jesus Christ),  \nthat whoever believes in him shall not perish but have eternal life. - John 3:16"': { 'son': True, '$100 bill': False, 'friend': False, 'self': False },
+		'When was Hamber Christian Fellowship founded in??': { '1973': True, '2011': False, '1957': False, '2001': False },
+		'Who is Jesus\' mother??': { 'Mary': True, 'Maria': False, 'Marie': False, 'Mario': False },
+		'How old was Jesus when he died??': { '33-34 years old': True, 'in his mid 20s': False, '18-19 years old': False, '46-47 years old': False },
+		'How many chapters and verses are there in the Bible??': { '1,189 chapters and 31,102 verses': True, '2,147 chapters and 48,294 verses': False, '827 chapters and 28,255 verses': False, '2,492 chapters and 52,001 verses': False },
+		'How many disciples (kinda like students) did Jesus have??': { '12':True, '1':False, '27':False, '77': False },
+		'Who, INDIRECTLY saying, planned Jesus\' death??': { 'God': True, 'The Romans, Jewish leaders, and Caiaphas': False, 'The Chinese and their communists': False, 'The programmer behind this game': False },
+		'One of the answers was one Jesus\' disciples. Who was he??': { 'Matthew': True, 'Matthias': False, 'Mattias': False, 'Helmbrokatras': False },
+		'What do B.C. and A.D. (like in the context of time, i.e. 100 B.C. or 2016 A.D.) stand for??': {'Before Christ (BC) and Anno Domini (AD, stands for \'In the year of the Lord\' in Latin)': True, 'Before Crocodiles (BC) and After Dinosaurs (AD)': False, 'Before Christianity (BC) and After Domination (AD)':False, 'Before Clapstain (BC) and After Drackobranka (AD)': False } 
 		}
+		
+highscore = []	
 keys = sets.keys()
 userAnswer = None
 _userAnswer = None
 checked = False
 actualSets = {}
-questions = 4
+questions = 5
 btn_boxtype = FL_ROUND_UP_BOX
 getWidth = Fl.w()
 getHeight = Fl.h()
-windowW = 1000
-windowH = 680
-currentQuestion = 0
+questionsActivityW = 1000
+questionsActivityH = 680
+currentQuestion = -1
 possibleAns_label = []
-score = 0
+score = 10
 
 for numofquestions in range(questions):
 	getQuestion = random.choice(keys)
@@ -117,19 +129,55 @@ for count in range(len(_actualKeys)):
 	del _actualKeys[getQLocation]
 	actualKeys.append(question)
 
-print actualKeys
-
 #-----------
-
-startActivity = Fl_Window( ((getWidth-windowW)/2), ((getHeight-windowH)/2), windowW, windowH, "Hamber Christian Fellowship Trivia System")
+try:
+	database = open('hcf_trv.dat','r')
+except:
+	database = open('hcf_trv.dat','w')
+	print '>>> NEW DATABASE HAS BEEN CREATED.'
+	
+startActivity = Fl_Window( ((getWidth-questionsActivityW)/2), ((getHeight-questionsActivityH)/2), questionsActivityW, questionsActivityH, "Hamber Christian Fellowship Trivia System")
 startActivity.begin()
+startActivity.color(fl_rgb_color(0,157,224))
+
+b = Fl_Button(0,0,10,10)
+b.callback(cb)
+
+helloBox = Fl_Box(0,170,questionsActivityW,100,'Christian History\nTrivia')
+helloBox.labelsize(70)
+helloBox.labelcolor(FL_WHITE)
+
+nameInput = Fl_Input(425,430,200,25,'Name: ')
+nameInput.value('name')
 
 startBtn = Fl_Button(100,485,800,60,"START")
-startBtn.color(fl_rgb_color(0,168,150))
+startBtn.color(fl_rgb_color(0,110,180))
+startBtn.labelcolor(FL_WHITE)
+startBtn.box(btn_boxtype)
+startBtn.callback(start_onclick)
 
 startActivity.end()
-window = Fl_Window( ((getWidth-windowW)/2), ((getHeight-windowH)/2), windowW, windowH, "Hamber Christian Fellowship Trivia System")
-window.begin()
+
+scoreActivity = Fl_Window( ((getWidth-questionsActivityW)/2), ((getHeight-questionsActivityH)/2), questionsActivityW, questionsActivityH, "Hamber Christian Fellowship Trivia System")
+scoreActivity.begin()
+scoreActivity.color(fl_rgb_color(0,157,224))
+
+titleBox = Fl_Box(0,50,questionsActivityW,100,'You scored:')
+titleBox.labelsize(60)
+titleBox.labelcolor(FL_WHITE)
+
+scoreBox = Fl_Box(0,285,questionsActivityW,100)
+scoreBox.labelsize(270)
+scoreBox.labelcolor(FL_WHITE)
+
+outofBox = Fl_Box(700,335,120,120,(' /'+str(questions)))
+outofBox.labelsize(105)
+outofBox.labelcolor(FL_WHITE)
+
+scoreActivity.end()
+
+questionsActivity = Fl_Window( ((getWidth-questionsActivityW)/2), ((getHeight-questionsActivityH)/2), questionsActivityW, questionsActivityH, "Hamber Christian Fellowship Trivia System")
+questionsActivity.begin()
 
 questionNum = Fl_Box(0,0,1000,150, ("QUESTION #"))
 questionNum.box(FL_FLAT_BOX)
@@ -163,11 +211,10 @@ answer4.callback(answer_onclick)
 
 answers = [answer1,answer2,answer3,answer4]
 
-window.end()
+questionsActivity.end()
+startActivity.show()
 
-start_onclick(None)
-
-window.show()
-
+Fl.add_timeout(0.1,cb_repeat)
+Fl.repeat_timeout(0.1,cb_repeat)
 Fl.scheme('gtk+')
-Fl.run()	
+Fl.run()
