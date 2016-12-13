@@ -193,13 +193,13 @@ def refresh():
 def restart(self):
 	if score >= 5:
 		if score >= 8:
-			restartBtn.label('YEEEEEE, HOW MANY CANDEE CANES DO I GETTTT???!!')
+			restartBtn.label('YEEEEEEEEE, HOW MANY CANDEE CANES DO I GETTTT???!!')
 			msg = 'Yeee, '+userName+', you earned yourself 3 candy canes!!'
 		else:
-			restartBtn.label('YEE, HOW MANY CANDY CANE(S) DO I GET??!')
+			restartBtn.label('YEE, DO I GET ANY CANDY CANESSS??!')
 			msg = 'Of course, '+userName+', you deserve 2 candy canes!!'
 	else:
-		restartBtn.label('AIYA, DO I STILL MA CANDY CANE(S) MATE?!')
+		restartBtn.label('AIYA, DO I STILL GET MA CANDY CANE(S) MATE?!')
 		msg = 'It\'s okay, you still you get a candy cane! Well, you can always try again later!'
 	restartBtn.redraw()
 	fl_alert(msg)
@@ -222,9 +222,15 @@ sets = {'In what city was Jesus born??': { 'Seattle': False, 'Vancouver': False,
 		'Who, INDIRECTLY saying, planned Jesus\' death??': { 'God': True, 'The Romans, Jewish leaders, and Caiaphas': False, 'The Chinese and their communists': False, 'The programmer behind this game': False },
 		'One of the answers was one Jesus\' disciples. Who was he??': { 'Matthew': True, 'Matthias': False, 'Mattias': False, 'Helmbrokatras': False },
 		'What do B.C. and A.D. (like in the context of time, i.e. 100 B.C. or 2016 A.D.) stand for??': {'Before Christ (BC) and Anno Domini (AD, stands for \'In the year of the Lord\' in Latin)': True, 'Before Crocodiles (BC) and After Dinosaurs (AD)': False, 'Before Christianity (BC) and After Domination (AD)':False, 'Before Clapstain (BC) and After Drackobranka (AD)': False }, 
-		'What\'s the last book in the Bible called??': {'Revelation':True, 'Genesis':False, 'Glorify':False, 'The Next Coming':False }
+		'What\'s the last book in the Bible called??': {'Revelation':True, 'Genesis':False, 'Glorify':False, 'The Next Coming':False },
+		'What did the small David kill the giant, strong Goliath with??': {'A sling and a rock':True, 'Words of love':False, 'His badass martial art skills':False, 'A foot-long sword made of hardened metal':False },\
+		'What is the true meaning of Emmanuel??': { 'God with us':True, 'I am one of God\'s children':False, 'The power of God to the fullest':False, 'God reigns on every nation through the ages and every generation, from the nothingness to the end of time.':False },
+		'What is the LONGest chapter in the Bible??': {'Psalm 119':True, 'Matthew 52':False, 'Merkandras 2':False, 'Psalm 117':False },
+		'What is the SHORTest chapter in the Bible??': {'Psalm 117':True, 'Psalm 119':False, 'Exodus 42':False, 'Psalm 207':False },
+		'What is (/are) the key(s) points that differentiate(s) Christianity from other religions??': {'Revenge evil with kindness; love our enemies':False, 'Our God died, rose again on the 3rd day, and was ascended to heaven':False, 'Anyone who believes in the name of Jesus Christ will be saved, no matter what':False, 'All of the other options':True }
 		}
 
+print (str(len(sets.keys())) + ' questions.')
 userName = None
 keys = sets.keys()
 userAnswer = None
@@ -234,7 +240,7 @@ actualSets = {}
 score = 0
 currentQuestion = -1
 possibleAns_label = []
-questions = 1
+questions = 10
 tries = 0
 for numofquestions in range(questions):
 	getQuestion = random.choice(keys)
@@ -274,9 +280,15 @@ startActivity = Fl_Window( ((getWidth-questionsActivityW-250)/2), ((getHeight-qu
 startActivity.begin()
 startActivity.color(fl_rgb_color(0,157,224))
 
-helloBox = Fl_Box(0,170,questionsActivityW-30,100,'Christianity Trivia')
+helloBox = Fl_Box(0,170,questionsActivityW-30,300,'Christianity Trivia')
 helloBox.labelsize(80)
 helloBox.labelcolor(FL_WHITE)
+
+tBox = Fl_Box(-10,50,questionsActivityW-40,100,'FREE CANDY CANE(s)!!')
+tBox.labelcolor(fl_rgb_color(255,255,255))
+tBox.labelsize(75)
+tBox2 = Fl_Box(0,80,questionsActivityW-30,200,'Base reward = 1 candy cane (for just answering the questions)\nGet at least 5 questions right = 2 candy canes\nGet at least 8 questions right = 3 candy canes')
+tBox2.labelsize(25)
 
 highscoreBrowser = Fl_Browser(910,140,300,450)
 highscoreBrowser.color(fl_rgb_color(0,157,224))
@@ -284,8 +296,7 @@ for name in highscore:
 	if name != '':
 		highscoreBrowser.add((name+':  '+str(highscore[name])))
 		
-highscore_textbox = Fl_Box(910,75,300,60,"HIGHSCORES")
-highscore_textbox.labelcolor(FL_WHITE)
+highscore_textbox = Fl_Box(910,75,300,60,"HIGHSCOREs")
 highscore_textbox.labelsize(45)
 highscore_textbox.box(FL_FLAT_BOX)
 highscore_textbox.color(fl_rgb_color(0,157,224))
