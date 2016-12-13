@@ -45,13 +45,14 @@ def answer_onclick(self,arg2=None):
 	self.color2(fl_rgb_color(0,168,150))
 
 def nextQuestion():
-	global currentQuestion, possibleAns_label, highscore, tries
+	global currentQuestion, possibleAns_label, highscore, tries, statistics_questionShowRate
 	currentQuestion += 1
 	tries = 0
 	for ansBtn in answers:
 		ansBtn.callback(answer_onclick)
 		ansBtn.color(fl_rgb_color(192,192,192))
 	if currentQuestion != questions:
+		statistics_questionShowRate[actualKeys[currentQuestion]] += 1
 		answersToQ = actualSets[actualKeys[currentQuestion]].keys()
 		questionNum.label( ('QUESTION #'+str(currentQuestion+1)) )
 		questionBox.label(actualKeys[currentQuestion])
@@ -68,6 +69,7 @@ def nextQuestion():
 			answers[possibleAns_label.index(ans)].label(ans)
 			answers[possibleAns_label.index(ans)].value(0)
 			answers[possibleAns_label.index(ans)].redraw()
+
 	else:
 		if score >= 5:
 			if score >= 8:
@@ -88,9 +90,19 @@ def nextQuestion():
 			highscore = _highscore
 		elif _score is 'same as the heighest':
 			highscore[userName] = score
+			
 		database = open('hcf_trv.dat','w')
+		statsQ = open('hcf_stats_q.dat','w')
+		statsA = open('hcf_stats_a.dat','w')
+		
 		IO.dump(highscore,database)
+		IO.dump(statistics_questionShowRate,statsQ)
+		IO.dump(statistics_userAns,statsA)
+		
 		database.close()
+		statsA.close()
+		statsQ.close()
+		
 		questionsActivity.hide()
 		scoreBox.labelcolor(FL_GREEN)
 		scoreBox.label(str(score))
@@ -98,9 +110,10 @@ def nextQuestion():
 		scoreActivity.show()
 		
 def check_or_next_onclick(self):
-	global userAnswer, score, checked
+	global userAnswer, score, checked, statistics_userAns
 	
 	if not checked:
+		statistics_userAns[_userAnswer.label()] += 1
 		if userAnswer is True: #I know I can do <code> if userAnswer: </code>, but I'm english-nifing the code here!
 			score += 1
 			questionNum.label('Yay, you got it riteee!')
@@ -226,7 +239,6 @@ sets = {'In what city was Jesus born??': { 'Seattle': False, 'Vancouver': False,
 		'What did the small David kill the giant, strong Goliath with??': {'A sling and a rock':True, 'Words of love':False, 'His badass martial art skills':False, 'A foot-long sword made of hardened metal':False },\
 		'What is the true meaning of Emmanuel??': { 'God with us':True, 'I am one of God\'s children':False, 'The power of God to the fullest':False, 'God reigns on every nation through the ages and every generation, from the nothingness to the end of time.':False },
 		'What is the LONGest chapter in the Bible??': {'Psalm 119':True, 'Matthew 52':False, 'Merkandras 2':False, 'Psalm 117':False },
-		'What is the SHORTest chapter in the Bible??': {'Psalm 117':True, 'Psalm 119':False, 'Exodus 42':False, 'Psalm 207':False },
 		'What is (/are) the key(s) points that differentiate(s) Christianity from other religions??': {'Revenge evil with kindness; love our enemies':False, 'Our God died, rose again on the 3rd day, and was ascended to heaven':False, 'Anyone who believes in the name of Jesus Christ will be saved, no matter what':False, 'All of the other options':True }
 		}
 
@@ -268,12 +280,28 @@ questionsActivityH = 680
 #-----------
 try:
 	database = open('hcf_trv.dat','r')
+	statsQ = open('hcf_stats_q.dat','r')
+	statsA = open('hcf_stats_a.dat','r')
 	highscore = IO.load(database)
+	statistics_questionShowRate = IO.load(statsQ)
+	statistics_userAns = IO.load(statsA)
 except:
 	database = open('hcf_trv.dat','w')
+	statsQ = open('hcf_stats_q.dat','w')
+	statsA = open('hcf_stats_a.dat','w')
 	highscore = {'':0}
+	statistics_questionShowRate = {}
+	statistics_userAns = {}
+	for question in sets:
+		statistics_questionShowRate[question] = 0
+		for answer in sets[question]:
+			statistics_userAns[answer] = 0
 	print '>>> NEW DATABASE HAS BEEN CREATED.'
 database.close()
+statsA.close()
+statsQ.close()
+print statistics_questionShowRate
+print statistics_userAns
 
 #-------------------
 startActivity = Fl_Window( ((getWidth-questionsActivityW-250)/2), ((getHeight-questionsActivityH)/2)+10, questionsActivityW+250, questionsActivityH, "Hamber Christian Fellowship Trivia System")
