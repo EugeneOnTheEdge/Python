@@ -5,10 +5,10 @@ import random
 import cPickle as IO
 
 def btn_OnClick(self):
-	global level, click, simonsaysBtns, userResponse, SimonIsSaying
+	global level, click, simonsaysBtns, userResponse, SimonIsSaying, best
 	gameover = False
 	redraw(None)
-	print buttons.index(self),
+	print buttons.index(self)
 	
 	if not SimonIsSaying:
 		if self != simonsaysBtns[int(click)]:
@@ -27,6 +27,11 @@ def btn_OnClick(self):
 		print '\n====================='
 		startBtn.color(FL_RED)
 		statusBar.label('Correct!')
+		if level > best:
+			f = open('simonSays.dat','w')
+			IO.dump(level,f)
+			f.close()
+			bestBox.label(str(level))
 		
 	if gameover:
 		print '======GAME OVER======'
@@ -56,7 +61,7 @@ def simonsays():
 	redraw(None)
 	
 	if order < level:
-		Fl.add_timeout(0.5, simonsays)
+		Fl.add_timeout(0.35, simonsays)
 	else:
 		SimonIsSaying = False
 		order = 0
@@ -77,12 +82,23 @@ def start_OnClick(self):
 	print ("\n\n\n====== LEVEL %i ======\nSimon says:" % level), _simon
 	print "\nYou've pressed:"
 	redraw(None)
-	Fl.add_timeout(1.5, simonsays)
+	Fl.add_timeout(0.5, simonsays)
 
 def redraw(self):
 	for wid in makeitreal:
 		wid.redraw()
+
+try:
+	f = open('simonSays.dat')
+	best = IO.load(f)
+	print best
+except:
+	f = open('simonSays.dat','w')
+	best = 1
+	IO.dump(best,f)
+	print ">>> HIGHSCORE HAS BEEN RESET."
 	
+f.close()
 #Window setup
 getWidth = Fl.w()
 getHeight = Fl.h()
@@ -159,7 +175,7 @@ startText.labelsize(14)
 levelText = Fl_Box(200,325,60,40,'LEVEL')
 bestText = Fl_Box(340,325,60,40,'BEST')
 
-bestBox = Fl_Box(340,360,60,40, 'N/A')
+bestBox = Fl_Box(340,360,60,40, str(best))
 bestBox.color(FL_BLACK)
 bestBox.labelcolor(FL_WHITE)
 bestBox.box(FL_BORDER_BOX)
