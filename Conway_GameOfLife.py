@@ -24,9 +24,10 @@ class Pixel(Fl_Button):
 	def onClick(self,widget):
 		global currentAlive
 		if self.alive:
-			self.alive = False
-			self.color(FL_GRAY)
-			currentAlive -= 1
+			if not Fl.event_key(FL_SHIFT):
+				self.alive = False
+				self.color(FL_GRAY)
+				currentAlive -= 1
 		else:
 			self.alive = True
 			self.color(FL_BLUE)
@@ -39,11 +40,12 @@ class Pixel(Fl_Button):
 		else:
 			simulateBtn.deactivate()
 			resetBtn.deactivate()
+		print self
 	def __repr__(self):
 		return 'Button at '+str((self.x)/pixelSize)+', '+str(self.y/pixelSize)
 
 def simulate_listener(widget):
-	global currentAlive
+	global currentAlive, borderline
 	currentAlive = 0
 	stopBtn.activate()
 	widget.deactivate()
@@ -59,12 +61,12 @@ def simulate_listener(widget):
 					x.alive_around += 1
 				if buttons_2d[y-1][buttons_2d[y].index(x)+1].alive: 
 					x.alive_around += 1
-					
+				#---
 				if buttons_2d[y][buttons_2d[y].index(x)-1].alive: 
 					x.alive_around += 1
 				if buttons_2d[y][buttons_2d[y].index(x)+1].alive: 
 					x.alive_around += 1
-					
+				#---
 				if buttons_2d[y+1][buttons_2d[y].index(x)-1].alive: 
 					x.alive_around += 1
 				if buttons_2d[y+1][buttons_2d[y].index(x)].alive: 
@@ -72,19 +74,22 @@ def simulate_listener(widget):
 				if buttons_2d[y+1][buttons_2d[y].index(x)+1].alive: 
 					x.alive_around += 1
 			except:
-				pass
-				
-			if not x.alive:
-				if x.alive_around == 3:
-					x.next_alive = True
+				x.next_alive = False
+				borderline = True
+			
+			if not borderline:	
+				if not x.alive:
+					if x.alive_around == 3:
+						x.next_alive = True
+					else:
+						x.next_alive = False
 				else:
-					x.next_alive = False
-			else:
-				currentAlive += 1
-				if x.alive_around < 2 or x.alive_around > 3:
-					x.next_alive = False
-				else:
-					x.next_alive = True
+					currentAlive += 1
+					if x.alive_around < 2 or x.alive_around > 3:
+						x.next_alive = False
+					else:
+						x.next_alive = True
+			borderline = False
 	refresh()
 		
 def refresh(reset=0):
@@ -125,16 +130,18 @@ def reset_listener(widget):
 	generations = 0
 	for y in range(len(buttons_2d)):
 		for x in buttons_2d[y]:
-			x.alive = 0
-			x.next_alive = 0
+			x.alive = False
+			x.next_alive = False
 	refresh(1)
-window = Fl_Double_Window(100,100,1080,600,'Conway\'s Game of Life')
+	
+window = Fl_Double_Window(100,100,1080,607,'Conway\'s Game of Life')
 window.begin()
 
 simulateBtn = Fl_Button(25,20,110,35,'SIMULATE')
 simulateBtn.callback(simulate_listener)
 simulateBtn.box(FL_ROUND_UP_BOX)
 simulateBtn.deactivate()
+simulateBtn.shortcut(FL_F)
 
 stopBtn = Fl_Button(160,20,110,35,'STOP')
 stopBtn.deactivate()
@@ -146,14 +153,14 @@ resetBtn.deactivate()
 resetBtn.callback(reset_listener)
 resetBtn.box(FL_ROUND_UP_BOX)
 
-generationsBox = Fl_Box(300,20,120,35, 'Generations: 0')
+generationsBox = Fl_Box(275,20,170,35, 'Generations: 0')
 
 buttons_2d = []
-pixelSize = 12
-FPS = 15
+pixelSize = 17
+FPS = 50
 generations = 0
 currentAlive = 0
-
+borderline = False
 for y in range(80,600,pixelSize):
     dimension = []
     for x in range(0,1080,pixelSize):
