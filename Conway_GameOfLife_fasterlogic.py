@@ -11,33 +11,38 @@ from fltk import *
 '''
 
 class Pixel(Fl_Button):
-	global alives
 	count = 0
 	def __init__(self, x, y, w, h):
 		Fl_Button.__init__(self, x, y, w, h)
+		
+		#SCREEN location
 		self.x = x
 		self.y = y
+		
+		#PIXEL location
 		self.array_location_X = ((self.x)/pixelSize)
 		self.array_location_Y = ((self.y-startY)/pixelSize)
+		
 		self.alive = False
 		self.callback(self.onClick)
 		self.alive_around = 0
 		self.box(FL_FLAT_BOX)
+		self.next_alive = False
 		#self.box(FL_THIN_DOWN_BOX)
     
 	def onClick(self,widget):
-		global currentAlive
+		global currentAlive, alives
 		if self.alive:
-			if not Fl.event_key(FL_SHIFT):
-				self.alive = False
-				self.color(FL_GRAY)
-				currentAlive -= 1
-				alives = alives[:alives.index(self)]+alives[alives.index(self)+1:]
+			self.alive = False
+			self.color(FL_GRAY)
+			currentAlive -= 1
+			alives = alives[:alives.index(self)]+alives[alives.index(self)+1:]
 		else:
 			self.alive = True
 			self.color(FL_BLUE)
 			currentAlive += 1
 			alives.append(self)
+			
 		self.redraw()
 		currentAliveBox.label('Alive: '+str(currentAlive)+' /'+str(pixelCount)+' ( %.3f%% )' % (currentAlive/pixelCount*100) )
 		if currentAlive > 0:
@@ -46,44 +51,71 @@ class Pixel(Fl_Button):
 		else:
 			simulateBtn.deactivate()
 			resetBtn.deactivate()
-		print self
+		print alives
 	def __repr__(self):
 		return 'Button at '+str((self.x)/pixelSize)+', '+str((self.y-startY)/pixelSize)
 
 def simulate_listener(widget):
-	global currentAlive, borderline
+	global currentAlive, borderline, alives
 	currentAlive = 0
 	stopBtn.activate()
 	widget.deactivate()
 	resetBtn.deactivate()
 	
 	for button in alives:
-		for y in range(len(buttons_2d)):
-			if button in y:
-				button_location_X = y.index(button)
-			button.alive_around = 0
-			
-			if not button.alive:
-				if button.alive_around == 3:
-					button.next_alive = True
+		btns_around = [
+		buttons_2d[button.array_location_Y-1][button.array_location_X-1], buttons_2d[button.array_location_Y-1][button.array_location_X],buttons_2d[button.array_location_Y-1][button.array_location_X+1],
+		buttons_2d[button.array_location_Y][button.array_location_X-1],buttons_2d[button.array_location_Y][button.array_location_X],buttons_2d[button.array_location_Y][button.array_location_X+1],
+		buttons_2d[button.array_location_Y+1][button.array_location_X-1],buttons_2d[button.array_location_Y+1][button.array_location_X],buttons_2d[button.array_location_Y+1][button.array_location_X+1]]
+		
+		for btn in btns_around:
+			btn.alive_around = 0
+			try:
+				#Y-1
+				if buttons_2d[btn.array_location_Y-1][btn.array_location_X-1].alive:
+					btn.alive_around += 1
+				if buttons_2d[btn.array_location_Y-1][btn.array_location_X].alive:
+					btn.alive_around += 1
+				if buttons_2d[btn.array_location_Y-1][btn.array_location_X+1].alive:
+					btn.alive_around += 1
+				#Y==btn.array_location_Y
+				if buttons_2d[btn.array_location_Y][btn.array_location_X-1].alive:
+					btn.alive_around += 1
+				if buttons_2d[btn.array_location_Y][btn.array_location_X+1].alive:
+					btn.alive_around += 1
+				#Y+1	
+				if buttons_2d[btn.array_location_Y+1][btn.array_location_X-1].alive:
+					btn.alive_around += 1
+				if buttons_2d[btn.array_location_Y+1][btn.array_location_X].alive:
+					btn.alive_around += 1
+				if buttons_2d[btn.array_location_Y+1][btn.array_location_X+1].alive:
+					btn.alive_around += 1
+			except:
+				pass
+						
+			if not btn.alive:
+				if btn.alive_around == 3:
+					btn.next_alive = True
 				else:
-					button.next_alive = False
+					btn.next_alive = False
 			else:
 				currentAlive += 1
-				if button.alive_around < 2 or button.alive_around > 3:
-					button.next_alive = False
+				if btn.alive_around < 2 or btn.alive_around > 3:
+					btn.next_alive = False
 				else:
-					button.next_alive = True
+					btn.next_alive = True
 	refresh()
 		
 def refresh(reset=0):
-	global generations, currentAlive
+	global generations, currentAlive, alives
+	alives = []
 	generations += 1
 	resetBtn.deactivate()
 	for y in range(len(buttons_2d)):
 		for x in buttons_2d[y]:
 			if x.next_alive:
 				x.color(FL_BLUE)
+				alives.append(x)
 			else:
 				x.color(FL_GRAY)
 			x.alive = x.next_alive
@@ -92,9 +124,10 @@ def refresh(reset=0):
 	currentAliveBox.label('Alive: '+str(currentAlive)+' /'+str(pixelCount)+' ( %.3f%% )' % (currentAlive/pixelCount*100) )
 	if currentAlive == 0 and reset != 1:
 		stopBtn.do_callback()
+		alives = []
 	else:
 		Fl.add_timeout((1.0/FPS),simulate_listener,simulateBtn)
-	
+	print 'next alive:',alives
 def stop_listener(widget):
 	global generations, currentAlive
 	generations = 0
@@ -141,7 +174,7 @@ generationsBox = Fl_Box(275,20,170,35, 'Generations: 0')
 
 buttons_2d = []
 pixelSize = 15
-FPS = 15
+FPS = 40
 generations = 0
 currentAlive = 0
 borderline = False
