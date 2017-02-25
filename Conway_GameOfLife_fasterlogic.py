@@ -63,11 +63,14 @@ def simulate_listener(widget):
 	resetBtn.deactivate()
 	
 	for button in alives:
-		btns_around = [
-		buttons_2d[button.array_location_Y-1][button.array_location_X-1], buttons_2d[button.array_location_Y-1][button.array_location_X],buttons_2d[button.array_location_Y-1][button.array_location_X+1],
-		buttons_2d[button.array_location_Y][button.array_location_X-1],buttons_2d[button.array_location_Y][button.array_location_X],buttons_2d[button.array_location_Y][button.array_location_X+1],
-		buttons_2d[button.array_location_Y+1][button.array_location_X-1],buttons_2d[button.array_location_Y+1][button.array_location_X],buttons_2d[button.array_location_Y+1][button.array_location_X+1]]
-		
+		try:
+			btns_around = [
+			buttons_2d[button.array_location_Y-1][button.array_location_X-1], buttons_2d[button.array_location_Y-1][button.array_location_X],buttons_2d[button.array_location_Y-1][button.array_location_X+1],
+			buttons_2d[button.array_location_Y][button.array_location_X-1],buttons_2d[button.array_location_Y][button.array_location_X],buttons_2d[button.array_location_Y][button.array_location_X+1],
+			buttons_2d[button.array_location_Y+1][button.array_location_X-1],buttons_2d[button.array_location_Y+1][button.array_location_X],buttons_2d[button.array_location_Y+1][button.array_location_X+1]]
+		except:
+			pass
+			
 		for btn in btns_around:
 			btn.alive_around = 0
 			try:
@@ -127,7 +130,7 @@ def refresh(reset=0):
 		alives = []
 	else:
 		Fl.add_timeout((1.0/FPS),simulate_listener,simulateBtn)
-	print 'next alive:',alives
+
 def stop_listener(widget):
 	global generations, currentAlive
 	generations = 0
@@ -174,7 +177,7 @@ generationsBox = Fl_Box(275,20,170,35, 'Generations: 0')
 
 buttons_2d = []
 pixelSize = 15
-FPS = 40
+FPS = 80
 generations = 0
 currentAlive = 0
 borderline = False
