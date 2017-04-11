@@ -3,30 +3,99 @@
 import socket
 from fltk import *
 
+class TicTacToe_btn(Fl_Button):
+	def __init__(self,x,y,w,h,label=''):
+		Fl_Button.__init__(self,x,y,w,h,label)
+		self.x_location = x/w
+		self.y_location = y/h
+		self.array_location = len(buttons)+1
+		self.callback(self.buttons_onClick)
+		self.labelsize(130)
+
+	def buttons_onClick(self, widget):
+		widget.label(XO_me)
+		widget.labelcolor(FL_BLUE)
+		waitingBox.label("Waiting for your partner's turn...")
+		waitingBox.show()
+		if server:
+			s.sendto(str(buttons.index(widget)), address)
+		else:
+			s.sendto(str(buttons.index(widget)), (host,port))
+		for b in buttons:
+			b.deactivate()
+			
 def whostarts_selection_onClick(widget):
-	global host
+	global host, server
 	if widget.label() == 'Partner':
 		host = '0.0.0.0'
+		server = True
 		hostInput.value(host)
 		hostInput.deactivate()
 	whostarts.hide()
 	connectionDetails.show()
 
 def connection_confirm_onClick(widget):
-	global host, port
+	global host, port, XO_me, XO_partner
 	host = hostInput.value()
 	port = int(portInput.value())
-	if host == '0.0.0.0':
+	if server:
 		s.bind( (host,port) )
+		for b in buttons:
+			b.deactivate()
+		waitingBox.label("Your partner's goin first..")
+		waitingBox.show()
+		XO_me = 'O'
+		XO_partner = 'X'
+	else:
+		XO_me = 'X'
+		XO_partner = 'O'
+		waitingBox.hide()
 	connectionDetails.hide()
+	tictactoe.show()
 
-def buttons_onClick(widget):
-	if host == 'Partner':
-		pass #wait for partner
+def switchturn():
+	waitingBox.hide()
+	for b in buttons:
+		if b.label() == '':
+			b.activate()
+
+def onResponse_listener(fd):
+	global address, knownAddress
+	response = s.recvfrom(1024) #gets you (data, address) from client
+	address = response[1]
+	data = response[0]
+	if data == 'There\'s currently a running session of Tic-Tac-Toe at this IP address. Sorry, no cheaters here! \n*You didn\'t expect this, did ya?? lmao':
+		fl_alert(data)
+		tictactoe.hide()
+	else:
+		data = int(data)
+	if knownAddress is None:
+		knownAddress = response[1][0]
+		waitingBox.label('IT\'S YOUR TURN!')
+		waitingBox.redraw()
+		Fl.add_timeout(1.0, switchturn)
+		buttons[data].label(XO_partner)
+		buttons[data].redraw()
+	else:
+		if address[0] != knownAddress:
+			s.sendto('There\'s currently a running session of Tic-Tac-Toe at this IP address. Sorry, no cheaters here! \n*You didn\'t expect this, did ya?? lmao', address) 
+		else:
+			waitingBox.label('IT\'S YOUR TURN!')
+			waitingBox.redraw()
+			Fl.add_timeout(1.0, switchturn)
+			buttons[data].label(XO_partner)
+			buttons[data].redraw()
 	
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP
+fileDescriptor = s.fileno()
+Fl.add_fd(fileDescriptor, onResponse_listener)
 host = None
 port = None
+XO_me = None
+server = None
+XO_partner = None
+address = None
+knownAddress = None
 gridsize = 3
 buttons = []
 
@@ -51,9 +120,11 @@ connectionDetails.end()
 
 tictactoe = Fl_Window(100,100,600,600,'Tic-Tac-Toe')
 tictactoe.begin()
-for count in range((gridsize+2)**2):
-	if count-(gridsize+2) < 0:
-		buttons.append(Fl_Button(count-1*200,
+for x in range(-1,gridsize+2):
+	for y in range(-1,gridsize+2):
+		buttons.append(TicTacToe_btn(x*200,y*200,200,200))
+waitingBox = Fl_Box(0,0,600,600,"Waiting for your partner's turn...")
+waitingBox.labelsize(30)
 tictactoe.end()
 
 whostarts.show()
