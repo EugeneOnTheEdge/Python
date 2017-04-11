@@ -24,6 +24,12 @@ class TicTacToe_btn(Fl_Button):
 		for b in buttons:
 			b.deactivate()
 			
+def center(length,wh='width'):
+	if wh == 'width':
+		return (Fl.w()-length)/2
+	else:
+		return (Fl.h()-length)/2
+			
 def whostarts_selection_onClick(widget):
 	global host, server
 	if widget.label() == 'Partner':
@@ -85,7 +91,12 @@ def onResponse_listener(fd):
 			Fl.add_timeout(1.0, switchturn)
 			buttons[data].label(XO_partner)
 			buttons[data].redraw()
-	
+
+def winCheck():
+	buttons_2ndlevel = []
+	for b in buttons:
+		if b.label() != '':
+			WhosBoxIsIt = b.label()
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP
 fileDescriptor = s.fileno()
 Fl.add_fd(fileDescriptor, onResponse_listener)
@@ -99,7 +110,7 @@ knownAddress = None
 gridsize = 3
 buttons = []
 
-whostarts = Fl_Window(500,500,500,150,"Let's start!")
+whostarts = Fl_Window(center(500),center(150,'height'),500,150,"Let's start!")
 whostarts.begin()
 whostartsBox = Fl_Box(0,0,500,75,'Who starts first??')
 partnerBtn = Fl_Button(0,100,250,50,"Partner")
@@ -108,7 +119,7 @@ partnerBtn.callback(whostarts_selection_onClick)
 meBtn.callback(whostarts_selection_onClick)
 whostarts.end()
 
-connectionDetails = Fl_Window(500,500,500,150,"I need more info..")
+connectionDetails = Fl_Window(center(500),center(150,'height'),500,150,"I need more info..")
 connectionDetails.begin()
 connectionDetailsBox = Fl_Box(0,0,500,75,'Please enter connection details.')
 hostInput = Fl_Input(100,75,150,30,"HOST: ")
@@ -116,9 +127,10 @@ portInput = Fl_Input(325,75,80,30,"PORT: ")
 nextBtn = Fl_Button(420,75,30,30,'>')
 nextBtn.box(FL_ROUND_UP_BOX)
 nextBtn.callback(connection_confirm_onClick)
+nextBtn.shortcut()
 connectionDetails.end()
 
-tictactoe = Fl_Window(100,100,600,600,'Tic-Tac-Toe')
+tictactoe = Fl_Window(center(600),center(600,'height'),600,600,'Tic-Tac-Toe')
 tictactoe.begin()
 for x in range(-1,gridsize+2):
 	for y in range(-1,gridsize+2):
