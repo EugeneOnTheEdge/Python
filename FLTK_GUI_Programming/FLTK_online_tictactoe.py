@@ -6,9 +6,8 @@ from fltk import *
 class TicTacToe_btn(Fl_Button):
 	def __init__(self,x,y,w,h,label=''):
 		Fl_Button.__init__(self,x,y,w,h,label)
-		self.x_location = x/w
-		self.y_location = y/h
-		self.array_location = len(buttons)+1
+		self.x_location = x/w +1
+		self.y_location = y/h +1
 		self.callback(self.buttons_onClick)
 		self.labelsize(130)
 
@@ -23,6 +22,9 @@ class TicTacToe_btn(Fl_Button):
 			s.sendto(str(buttons.index(widget)), (host,port))
 		for b in buttons:
 			b.deactivate()
+	
+	def __repr__(self):
+		return ('Button at '+str(self.x_location)+' '+str(self.y_location))
 			
 def center(length,wh='width'):
 	if wh == 'width':
@@ -93,10 +95,16 @@ def onResponse_listener(fd):
 			buttons[data].redraw()
 
 def winCheck():
-	buttons_2ndlevel = []
-	for b in buttons:
-		if b.label() != '':
-			WhosBoxIsIt = b.label()
+	for x in buttons:
+		for btn in x:
+			if btn.label() != '':
+				buttonsAround = [ buttons[btn.x_location-1][btn.y_location-1], buttons[btn.x_location][btn.y_location-1], buttons[btn.x_location+1][btn.y_location-1],
+								  buttons[btn.x_location-1][btn.y_location], buttons[btn.x_location+1][btn.y_location],
+								  buttons[btn.x_location-1][btn.y_location+1], buttons[btn.x_location][btn.y_location+1], buttons[btn.x_location+1][btn.y_location+1] ]
+				
+				buttons_2ndlevel = [ button for button in buttonsAround if button.label == btn.label()]
+				#CONTINUE FROM HERE
+								  
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP
 fileDescriptor = s.fileno()
 Fl.add_fd(fileDescriptor, onResponse_listener)
@@ -127,17 +135,22 @@ portInput = Fl_Input(325,75,80,30,"PORT: ")
 nextBtn = Fl_Button(420,75,30,30,'>')
 nextBtn.box(FL_ROUND_UP_BOX)
 nextBtn.callback(connection_confirm_onClick)
-nextBtn.shortcut()
+nextBtn.shortcut(FL_Enter)
 connectionDetails.end()
 
 tictactoe = Fl_Window(center(600),center(600,'height'),600,600,'Tic-Tac-Toe')
 tictactoe.begin()
+
 for x in range(-1,gridsize+2):
+	_buttons = []
 	for y in range(-1,gridsize+2):
-		buttons.append(TicTacToe_btn(x*200,y*200,200,200))
+		_buttons.append(TicTacToe_btn(x*200,y*200,200,200))
+	buttons.append(_buttons)
+
 waitingBox = Fl_Box(0,0,600,600,"Waiting for your partner's turn...")
 waitingBox.labelsize(30)
 tictactoe.end()
 
 whostarts.show()
+winCheck()
 Fl.run()
