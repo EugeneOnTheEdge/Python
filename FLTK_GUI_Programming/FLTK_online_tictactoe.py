@@ -6,22 +6,29 @@ from fltk import *
 class TicTacToe_btn(Fl_Button):
 	def __init__(self,x,y,w,h,label=''):
 		Fl_Button.__init__(self,x,y,w,h,label)
-		self.x_location = x/w +1
-		self.y_location = y/h +1
+		self.x_location = x/w
+		self.y_location = y/h
 		self.callback(self.buttons_onClick)
 		self.labelsize(130)
 
 	def buttons_onClick(self, widget):
+		print self
 		widget.label(XO_me)
 		widget.labelcolor(FL_BLUE)
 		waitingBox.label("Waiting for your partner's turn...")
 		waitingBox.show()
-		if server:
-			s.sendto(str(buttons.index(widget)), address)
-		else:
-			s.sendto(str(buttons.index(widget)), (host,port))
-		for b in buttons:
-			b.deactivate()
+		for x in buttons:
+			if widget in x:
+				b = str(buttons.index(x))+' '+str(x.index(widget))
+		win = winCheck()
+		if not win:
+			if server:
+				s.sendto(b, address)
+			else:
+				s.sendto(b, (host,port))
+			for bx in buttons:
+				for by in bx:
+					by.deactivate()
 	
 	def __repr__(self):
 		return ('Button at '+str(self.x_location)+' '+str(self.y_location))
@@ -37,6 +44,7 @@ def whostarts_selection_onClick(widget):
 	if widget.label() == 'Partner':
 		host = '0.0.0.0'
 		server = True
+		tictactoe.label(tictactoe.label()+' SERVER')
 		hostInput.value(host)
 		hostInput.deactivate()
 	whostarts.hide()
@@ -64,9 +72,10 @@ def connection_confirm_onClick(widget):
 
 def switchturn():
 	waitingBox.hide()
-	for b in buttons:
-		if b.label() == '':
-			b.activate()
+	for bx in buttons:
+		for by in bx:
+			if by.label() == '':
+				by.activate()
 
 def onResponse_listener(fd):
 	global address, knownAddress
@@ -76,15 +85,19 @@ def onResponse_listener(fd):
 	if data == 'There\'s currently a running session of Tic-Tac-Toe at this IP address. Sorry, no cheaters here! \n*You didn\'t expect this, did ya?? lmao':
 		fl_alert(data)
 		tictactoe.hide()
+	elif data == 'win':
+		fl_alert('You lost...')
 	else:
-		data = int(data)
+		data = data.split()
+		x = int(data[0])
+		y = int(data[1])
 	if knownAddress is None:
 		knownAddress = response[1][0]
 		waitingBox.label('IT\'S YOUR TURN!')
 		waitingBox.redraw()
 		Fl.add_timeout(1.0, switchturn)
-		buttons[data].label(XO_partner)
-		buttons[data].redraw()
+		buttons[x][y].label(XO_partner)
+		buttons[x][y].redraw()
 	else:
 		if address[0] != knownAddress:
 			s.sendto('There\'s currently a running session of Tic-Tac-Toe at this IP address. Sorry, no cheaters here! \n*You didn\'t expect this, did ya?? lmao', address) 
@@ -92,25 +105,58 @@ def onResponse_listener(fd):
 			waitingBox.label('IT\'S YOUR TURN!')
 			waitingBox.redraw()
 			Fl.add_timeout(1.0, switchturn)
-			buttons[data].label(XO_partner)
-			buttons[data].redraw()
-
+			buttons[x][y].label(XO_partner)
+			buttons[x][y].redraw()
+	winCheck()
+	
 def winCheck():
+	win = None
 	for x in buttons:
+		score = 0
 		for btn in x:
-			if btn.label() != '':
+			if btn.label() == XO_me:
+				score += 1
+		if score == 3:
+			win = True
+	
+	if not win:
+		for y in range(len(buttons[0])):
+			score = 0
+			for x in buttons:
+				if x[y].label() == XO_me:
+					score += 1
+			if score == 3:
+				win = True
+				
+	if buttons[1][1].label() == XO_me and buttons[2][2].label() == XO_me and buttons[3][3].label() == XO_me:
+		win = True
+	if buttons[3][1].label() == XO_me and buttons[2][2].label() == XO_me and buttons[1][3].label() == XO_me:
+		win = True
+		
+	if win:
+		fl_alert('You WIN!')
+		if server:
+			s.sendto('win', address)
+		else:
+			s.sendto('win', (host,port))
+			
+			'''if btn.label() == XO_me:
 				buttonsAround = [ buttons[btn.x_location-1][btn.y_location-1], buttons[btn.x_location][btn.y_location-1], buttons[btn.x_location+1][btn.y_location-1],
 								  buttons[btn.x_location-1][btn.y_location], buttons[btn.x_location+1][btn.y_location],
 								  buttons[btn.x_location-1][btn.y_location+1], buttons[btn.x_location][btn.y_location+1], buttons[btn.x_location+1][btn.y_location+1] ]
 				
-				buttons_2ndlevel = [ button for button in buttonsAround if button.label == btn.label()]
+				buttons_2ndlevel = [ button for button in buttonsAround if button.label() == XO_me]
+				
 				#CONTINUE FROM HERE
 				for b in buttons_2ndlevel:
 					opposite_yDifference = (btn.y_location - b.y_location) * (-2)
 					opposite_xDifference = (btn.x_location - b.x_location) * (-2)
 					
-					if buttons[b.x_location+opposite_xDifference][b.y_location+opposite_yDifference].value() != '':
-						fl_alert('WIN')
+					print '>>>',buttons[b.x_location+opposite_xDifference][b.y_location+opposite_yDifference]
+					
+					if buttons[b.x_location+opposite_xDifference][b.y_location+opposite_yDifference].label() == XO_me:
+						fl_alert('WIN')'''
+	return win
 								  
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP
 fileDescriptor = s.fileno()
