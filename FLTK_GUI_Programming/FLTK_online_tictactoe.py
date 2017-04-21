@@ -48,8 +48,9 @@ def connection_confirm_onClick(widget):
 	port = int(portInput.value())
 	if server:
 		s.bind( (host,port) )
-		for b in buttons:
-			b.deactivate()
+		for bx in buttons:
+			for by in bx:
+				by.deactivate()
 		waitingBox.label("Your partner's goin first..")
 		waitingBox.show()
 		XO_me = 'O'
@@ -104,6 +105,12 @@ def winCheck():
 				
 				buttons_2ndlevel = [ button for button in buttonsAround if button.label == btn.label()]
 				#CONTINUE FROM HERE
+				for b in buttons_2ndlevel:
+					opposite_yDifference = (btn.y_location - b.y_location) * (-2)
+					opposite_xDifference = (btn.x_location - b.x_location) * (-2)
+					
+					if buttons[b.x_location+opposite_xDifference][b.y_location+opposite_yDifference].value() != '':
+						fl_alert('WIN')
 								  
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP
 fileDescriptor = s.fileno()
