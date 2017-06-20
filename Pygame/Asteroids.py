@@ -10,8 +10,6 @@ class Asteroid(object):
 		self.yPos = yPos
 		self.xLength = 100
 		self.yLength = 100 
-		self.xPos = xPos
-		self.yPos = yPos
 		self.xVelocity = -(asteroidVelocity * math.sin(toRadian(self.angle)))
 		self.yVelocity = -(asteroidVelocity * math.cos(toRadian(self.angle)))
 		self.colour = ( random.randint(25,255), random.randint(25,255), random.randint(25,255) )
@@ -139,11 +137,7 @@ while running:
 				randnum = random.randint(1,3)
 				_randnum = random.randint(1,3)
 				if randnum == _randnum:
-					try:
-						powerups.append(PowerUp())
-					except:
-						pass
-					
+                                     powerups.append(PowerUp())
 		if slowdown:
 			relativeVelocity *= deceleration
 		else:
@@ -184,14 +178,14 @@ while running:
 			for meteor in meteors:
 				screen.blit(meteor.pic, (meteor.xPos,meteor.yPos))
 			
-		for PowerUp in powerups:
-			if PowerUp.yPos > height-PowerUp.size or PowerUp.yPos < 0+PowerUp.size:
-				PowerUp.yVelocity = -PowerUp.yVelocity
-			if PowerUp.xPos > width-PowerUp.size or PowerUp.xPos < 0+PowerUp.size:
-				PowerUp.xVelocity = -PowerUp.xVelocity
-			PowerUp.yPos += PowerUp.yVelocity
-			PowerUp.xPos += PowerUp.xVelocity
-			screen.blit(PowerUp.pic, (PowerUp.xPos, PowerUp.yPos))
+		for powerup in powerups:
+			if powerup.yPos > height-powerup.size or powerup.yPos < 0+powerup.size:
+				powerup.yVelocity = -powerup.yVelocity
+			if powerup.xPos > width-powerup.size or powerup.xPos < 0+powerup.size:
+				powerup.xVelocity = -powerup.xVelocity
+			powerup.yPos += powerup.yVelocity
+			powerup.xPos += powerup.xVelocity
+			screen.blit(powerup.pic, (powerup.xPos, powerup.yPos))
 			
 		#Collision detection between ASTEROIDS and METEORS (ASTEROID IS BULLET, I should be renaming those, I know.)
 		for asteroid in asteroids:
@@ -219,14 +213,14 @@ while running:
 					meteors.remove(meteor)
 		
 		#Collision detection between SHIP and POWERUP
-		for PowerUp in powerups:
-			distance = ( (PowerUp.xPos-xPos)**2 + (PowerUp.yPos-yPos)**2 )**0.5
+		for powerup in powerups:
+			distance = ( (powerup.xPos-xPos)**2 + (powerup.yPos-yPos)**2 )**0.5
 			
-			if shipradius + PowerUp.size > distance:
-				armor += PowerUp.addsArmor
-				health += PowerUp.addsHealth
-				freezetime = PowerUp.addsFreeze
-				powerups.remove(PowerUp)
+			if shipradius + powerup.size > distance:
+				armor += powerup.addsArmor
+				health += powerup.addsHealth
+				freezetime = powerup.addsFreeze
+				powerups.remove(powerup)
 
 		if health > 100:
 			health = 100
