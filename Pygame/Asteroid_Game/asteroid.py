@@ -32,7 +32,7 @@ class Meteor(object):
 class PowerUp(object):
 	def __init__(self):
 		self.size = 50
-		self.img = random.choice(["freeze.png", "armor.png", "health.png"])
+		self.img = random.choice(["armor.png", "freeze.png", "health.png"])
 		self.xPos = random.randint(600,width-self.size)
 		self.yPos = random.randint(0,height-self.size)
 		self.xVelocity = random.randint(1,3)
@@ -75,7 +75,7 @@ acceleration = 0.035
 
 #Drawables defining
 ship = pygame.image.load("ship.png")
-shipsize = 98
+shipsize = 80
 shipradius = shipsize/2
 ship = pygame.transform.scale(ship, (shipsize,shipsize))
 healthFont = pygame.font.SysFont("monospace", 25)
@@ -95,9 +95,9 @@ while running:
 			
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_LEFT:
-					addAngle = 4.0
+					addAngle = 3.0
 				if event.key == pygame.K_RIGHT:
-					addAngle = -4.0
+					addAngle = -3.0
 				if event.key == pygame.K_UP:
 					slowdown = False
 					reverse = 1
@@ -116,6 +116,7 @@ while running:
 						
 				if event.key == pygame.K_SPACE:
 					asteroids.append(Asteroid(angle,xPos,yPos))
+					bulletsShot += 1.0
 			if event.type == pygame.KEYUP:
 				if event.key == pygame.K_LEFT:
 					addAngle = 0
@@ -136,7 +137,7 @@ while running:
 				randnum = random.randint(1,3)
 				_randnum = random.randint(1,3)
 				if randnum == _randnum:
-                                     powerups.append(PowerUp())
+					powerups.append(PowerUp())
 		if slowdown:
 			relativeVelocity *= deceleration
 		else:
@@ -150,7 +151,11 @@ while running:
 		yPos += -(relativeVelocity * math.cos(toRadian(angle)))
 		angle += addAngle
 		angle %= 360
-		
+		if bulletsShot == 0:
+			accuracy = 0.000
+		else:
+			accuracy = hits/bulletsShot
+			
 		if relativeVelocity < 0:
 			cruisecontrol = 'OFF'
 			deceleration = 0.980
@@ -193,10 +198,11 @@ while running:
 					distance = ((asteroid.xPos-(meteors[m].xPos+meteors[m].center))**2 + (asteroid.yPos-(meteors[m].yPos+meteors[m].center))**2)**0.5
 					if asteroid.size + meteors[m].mSize/2 > distance:
 						meteors[m].mSize -= asteroid.size
+						hits += 1.0
 						del asteroids[asteroids.index(asteroid)]
 						if meteors[m].mSize < 50:
 							del meteors[m]
-							score += meteors[m].mOriginalSize
+							score += meteors[m].mOriginalSize + accuracy*meteors[m].mOriginalSize
 						else:
 							meteors[m].pic = pygame.transform.scale(meteors[m].pic, (meteors[m].mSize,meteors[m].mSize))
 				except: #IndexError and ValueError
@@ -207,7 +213,16 @@ while running:
 			distance = ( (meteor.xPos-xPos)**2 + (meteor.yPos-yPos)**2 )**0.5
 			
 			if shipradius + meteor.mSize > distance:
-				health -= meteor.mSize/5
+				deduction = meteor.mSize/2.5
+				if armor > 0:
+					if armor - deduction < 0:
+						diff = (armor-deduction)*-1
+						health -= deduction/2
+						armor = 0
+					else:
+						armor -= deduction
+				else:
+					health -= meteor.mSize/5
 				if int(health) > 0:
 					meteors.remove(meteor)
 		
@@ -223,27 +238,35 @@ while running:
 
 		if health > 100:
 			health = 100
+		if armor > 100:
+			armor = 100
 			
 		rotatedShip = pygame.transform.rotate(ship, angle)
 		rotatedRect = rotatedShip.get_rect()
 		rotatedRect.center = (xPos,yPos)
+		if armor > 0:
+			pygame.draw.circle(screen, (100,100,100), rotatedRect.center, int(armor/1.3))
 		screen.blit(rotatedShip, rotatedRect)
 		
 		healthText = healthFont.render( ("Health: "+str(int(health))+"%"),1, (0,255,0) )
 		armorText = healthFont.render( ("Armor: "+str(int(armor))+"%"),1, (0,255,0) )
 		freezeText = healthFont.render( ("Freeze Time: %.1fs" % (freezetime/60.0)), 1, (0,255,0) )
-		scoreText = healthFont.render( ("Score: "+str(score)+" pts"),1, (0,255,0) )
+		scoreText = healthFont.render( ("Score: "+str(int(score))+" pts"),1, (0,255,0) )
+		accuracyText = healthFont.render( ("Accuracy: %.3f%%" % (accuracy*100.0)),1, (0,255,0) )
+
 		_speed = relativeVelocity*60.0
 		speedText = healthFont.render( ("Speed: %.1f pixels/sec" % _speed),1, (0,255,0) )
+		
 		headingText = healthFont.render( ("Heading: %i degrees" % angle), 1, (0,255,0) )
 		ccText = healthFont.render( ("Cruise Ctrl: "+cruisecontrol), 1, (0,255,0) )
-		screen.blit(ccText, (500,height-35))
+		screen.blit(ccText, (625,height-35))
 		screen.blit(healthText, (0,0))
-		screen.blit(freezeText, (800,0))
+		screen.blit(freezeText, (900,0))
 		screen.blit(armorText, (250,0))
+		screen.blit(accuracyText, (500,0))
 		screen.blit(scoreText, (0,height-35))
-		screen.blit(speedText, (800, height-35))
-		screen.blit(headingText, (450, 0))
+		screen.blit(speedText, (915, height-35))
+		screen.blit(headingText, (4550, 0))
 		
 		pygame.display.flip()
 		clock.tick(60)
@@ -267,6 +290,8 @@ while running:
 		score = 0
 		relativeVelocity = 0.0
 		armor = 0
+		bulletsShot = 0
+		hits = 0
 		
 		asteroidText = asteroidFont.render('ASTEROIDS',1,(0,255,0))
 		startText = healthFont.render('> Start <',1,(0,255,0))
